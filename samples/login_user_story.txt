@@ -1,0 +1,5 @@
+As a user, I want to log in with email and password so that I can access my account dashboard.
+Acceptance criteria:
+- User can log in with valid credentials.
+- Error appears for invalid password.
+- Required field validation should appear for empty fields.

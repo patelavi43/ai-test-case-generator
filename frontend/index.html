@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Test Case Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 16px; background:#f5f7fb; color:#222; }
+    .card { background:#fff; padding:24px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08); }
+    input, textarea, button { width:100%; padding:12px; margin-top:10px; margin-bottom:14px; border-radius:8px; border:1px solid #ccc; font-size:14px; }
+    button { background:#0b6bcb; color:#fff; border:none; cursor:pointer; }
+    button:hover { background:#0957a5; }
+    .test-case { border:1px solid #d9e2f1; background:#f9fbff; padding:14px; border-radius:10px; margin-top:12px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media (max-width:700px){ .row{ grid-template-columns:1fr; } }
+    .muted { color:#666; font-size:14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>AI Test Case Generator</h1>
+    <p class="muted">Paste a requirement or user story and generate sample structured test cases.</p>
+
+    <label>Feature name</label>
+    <input id="featureName" placeholder="Example: Login" />
+
+    <label>Requirement / User story</label>
+    <textarea id="requirementText" rows="7" placeholder="Example: As a user, I want to log in with email and password so that I can access my dashboard."></textarea>
+
+    <div class="row">
+      <button onclick="generateCases()">Generate Test Cases</button>
+      <button onclick="exportCsv()">Export CSV</button>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:8000';
+
+    async function generateCases() {
+      const feature_name = document.getElementById('featureName').value.trim();
+      const requirement_text = document.getElementById('requirementText').value.trim();
+      const result = document.getElementById('result');
+
+      if (!feature_name || !requirement_text) {
+        result.innerHTML = '<p style="color:red;">Please enter both feature name and requirement text.</p>';
+        return;
+      }
+
+      result.innerHTML = '<p>Generating...</p>';
+      const res = await fetch(`${API_BASE}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feature_name, requirement_text })
+      });
+      const data = await res.json();
+
+      result.innerHTML = `<h2>Generated Test Cases</h2>` + data.test_cases.map(tc => `
+        <div class="test-case">
+          <h3>${tc.title}</h3>
+          <p><strong>Category:</strong> ${tc.category}</p>
+          <p><strong>Priority:</strong> ${tc.priority}</p>
+          <p><strong>Preconditions:</strong> ${tc.preconditions}</p>
+          <p><strong>Steps:</strong> ${tc.steps.join(' → ')}</p>
+          <p><strong>Test Data:</strong> ${tc.test_data}</p>
+          <p><strong>Expected Result:</strong> ${tc.expected_result}</p>
+        </div>
+      `).join('');
+    }
+
+    async function exportCsv() {
+      const feature_name = document.getElementById('featureName').value.trim();
+      const requirement_text = document.getElementById('requirementText').value.trim();
+      const result = document.getElementById('result');
+
+      if (!feature_name || !requirement_text) {
+        result.innerHTML = '<p style="color:red;">Please enter both feature name and requirement text.</p>';
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/export-csv`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feature_name, requirement_text })
+      });
+      const data = await res.json();
+
+      const blob = new Blob([data.csv_content], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = data.filename;
+      a.click();
+    }
+  </script>
+</body>
+</html>
