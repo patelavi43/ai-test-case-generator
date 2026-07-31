@@ -1,9 +1,9 @@
 # AI Test Case Generator
 
-AI-ready test case generator built with **FastAPI** and a simple frontend UI.  
+AI-ready test case generator built with **FastAPI** and a clean frontend UI.  
 It converts a feature name + requirement/user story into structured test cases and can export them to CSV, designed as a portfolio project for **AI automation testing** roles.
 
-> Note: The backend is wired for OpenAI JSON-mode responses, but also includes a **local fallback generator** so the app works even when API quota/credits are not available.
+> Note: The backend supports OpenAI JSON-mode responses, but also includes a **local fallback generator** so the app works even when API quota or credits are not available.
 
 ---
 
@@ -39,7 +39,11 @@ ai-test-case-generator/
 ├─ frontend/
 │  ├─ index.html        # Single-page UI
 │  ├─ styles.css        # Basic styling
-│  └─ script.js         # Calls backend /generate and /export-csv
+│  ├─ script.js         # Calls backend /generate and /export-csv
+│  └─ screenshots/
+│     ├─ home.png
+│     ├─ generated-output.png
+│     └─ csv-export.png
 │
 └─ README.md
 ```
@@ -78,7 +82,7 @@ ai-test-case-generator/
    set OPENAI_API_KEY=sk-***************
    ```
 
-   The backend will **try OpenAI first** and automatically fall back to local mock test cases if quota or connection fails.
+   The backend will try OpenAI first and automatically fall back to local mock test cases if quota or connection fails.
 
 5. Start the FastAPI server with Uvicorn:
 
@@ -153,7 +157,6 @@ ai-test-case-generator/
         "test_data": "email=user@example.com; password=Valid@123",
         "expected_result": "User is redirected to dashboard"
       }
-      // ...
     ]
   }
   ```
@@ -176,12 +179,10 @@ ai-test-case-generator/
 The backend uses this strategy:
 
 1. **Try OpenAI (if `OPENAI_API_KEY` is set):**
-
    - Uses `chat.completions` with `response_format={"type": "json_object"}` to get strictly valid JSON output.
    - Parses the JSON into a list of test cases.
 
 2. **If OpenAI fails (quota, network, etc.):**
-
    - Logs the error in the backend console.
    - Falls back to a deterministic **local generator** that returns 6 well-structured test cases based on the feature name and requirement.
 
@@ -191,11 +192,25 @@ This makes the project:
 
 ---
 
+## Screenshots
+
+### 1) Home screen
+![Home screen](frontend/screenshots/home.png)
+
+### 2) Generated test cases
+![Generated test cases](frontend/screenshots/generated-output.png)
+
+### 3) CSV export
+![CSV export](frontend/screenshots/csv-export.png)
+
+---
+
 ## Security Notes
 
 - Do **not** commit your `OPENAI_API_KEY` to GitHub.
 - Keep `.env` or environment variables local and ignored by Git.
-- This repo is designed so that missing/invalid keys do not crash the app; it simply uses local test case generation instead.
+- Revoke and recreate the API key if it was ever shared publicly.
+- This repo is designed so that missing or invalid keys do not crash the app; it simply uses local test case generation instead.
 
 ---
 
